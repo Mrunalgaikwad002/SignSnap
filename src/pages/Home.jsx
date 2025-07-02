@@ -1,5 +1,10 @@
 import React, { useState } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
+import 'react-pdf/dist/esm/Page/TextLayer.css';
+import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
+import SignaturePanel from '../components/SignaturePanel';
+import SignatureDetailsModal from '../components/SignatureDetailsModal';
+
 
 // Use unpkg CDN for the workerSrc to avoid fetch errors in CRA
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
@@ -14,6 +19,21 @@ const Home = () => {
   const [numPages, setNumPages] = useState(null);
   const [pageNumber, setPageNumber] = useState(1);
   const [signatureType, setSignatureType] = useState("simple");
+  // Signature details modal state
+  const [showSignatureDetailsModal, setShowSignatureDetailsModal] = useState(false);
+  const [fullName, setFullName] = useState('Mrunal Gaikwad');
+  const [initials, setInitials] = useState('MG');
+  const [signatureStyle, setSignatureStyle] = useState(0);
+  const [signatureColor, setSignatureColor] = useState('#222');
+  const [isPlacingSignature, setIsPlacingSignature] = useState(false);
+  const [signaturePos, setSignaturePos] = useState(null); // {x, y} in px relative to PDF container
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const pdfContainerRef = React.useRef();
+  const [signatureScale, setSignatureScale] = useState(1);
+  const [isResizing, setIsResizing] = useState(false);
+  const resizeStart = React.useRef({ x: 0, scale: 1 });
+  const [uploadedSignature, setUploadedSignature] = useState(null); // data URL
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
@@ -38,6 +58,88 @@ const Home = () => {
 
   const onDocumentLoadSuccess = ({ numPages }) => {
     setNumPages(numPages);
+  };
+
+  // Helper to get mouse position relative to PDF container
+  const getRelativePos = (e) => {
+    const rect = pdfContainerRef.current.getBoundingClientRect();
+    return {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    };
+  };
+
+  // Mouse event handlers for drag
+  const handleMouseDown = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+    const pos = getRelativePos(e);
+    setDragOffset({
+      x: pos.x - (signaturePos?.x || 100),
+      y: pos.y - (signaturePos?.y || 100),
+    });
+  };
+  const handleMouseMove = (e) => {
+    if (!isDragging) return;
+    const pos = getRelativePos(e);
+    setSignaturePos({
+      x: pos.x - dragOffset.x,
+      y: pos.y - dragOffset.y,
+    });
+  };
+  const handleMouseUp = () => {
+    if (isDragging) {
+      setIsDragging(false);
+      setIsPlacingSignature(false);
+    }
+  };
+
+  // Resize handlers
+  const handleResizeMouseDown = (e) => {
+    e.stopPropagation();
+    setIsResizing(true);
+    resizeStart.current = {
+      x: e.clientX,
+      scale: signatureScale,
+    };
+  };
+  const handleResizeMouseMove = (e) => {
+    if (!isResizing) return;
+    const dx = e.clientX - resizeStart.current.x;
+    let newScale = resizeStart.current.scale + dx / 150; // adjust divisor for sensitivity
+    newScale = Math.max(0.5, Math.min(3, newScale));
+    setSignatureScale(newScale);
+  };
+  const handleResizeMouseUp = () => {
+    if (isResizing) setIsResizing(false);
+  };
+
+  React.useEffect(() => {
+    if (isDragging) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+    if (isResizing) {
+      window.addEventListener('mousemove', handleResizeMouseMove);
+      window.addEventListener('mouseup', handleResizeMouseUp);
+      return () => {
+        window.removeEventListener('mousemove', handleResizeMouseMove);
+        window.removeEventListener('mouseup', handleResizeMouseUp);
+      };
+    }
+  }, [isDragging, isResizing]);
+
+  // Handle signature image upload
+  const onUploadSignature = (file) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setUploadedSignature(e.target.result);
+    };
+    reader.readAsDataURL(file);
   };
 
   // UI before file selection
@@ -87,7 +189,7 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-gray-100 flex flex-row">
       {/* PDF Viewer Section */}
-      <div className="flex-1 flex flex-col items-center justify-start p-8 overflow-auto">
+      <div className="flex-1 flex flex-col items-center justify-start p-8 overflow-auto relative">
         <div className="flex items-center mb-4 w-full max-w-2xl">
           <button
             onClick={() => setPageNumber((prev) => Math.max(prev - 1, 1))}
@@ -106,7 +208,7 @@ const Home = () => {
           </button>
           <span className="ml-4 font-medium">{selectedFile.name}</span>
         </div>
-        <div className="border rounded shadow bg-white w-full max-w-2xl flex flex-col items-center">
+        <div ref={pdfContainerRef} className="border rounded shadow bg-white w-full max-w-2xl flex flex-col items-center relative" style={{ minHeight: 900 }}>
           <Document
             file={selectedFile}
             onLoadSuccess={onDocumentLoadSuccess}
@@ -115,57 +217,79 @@ const Home = () => {
           >
             <Page pageNumber={pageNumber} width={700} />
           </Document>
+          {/* Drag-and-drop signature placement */}
+          {(isPlacingSignature || signaturePos) && (
+            <div
+              style={{
+                position: 'absolute',
+                left: (signaturePos?.x || 100),
+                top: (signaturePos?.y || 100),
+                zIndex: 30,
+                cursor: isPlacingSignature ? 'move' : 'pointer',
+                userSelect: 'none',
+                transform: `scale(${signatureScale})`,
+                transformOrigin: 'top left',
+              }}
+              onMouseDown={isPlacingSignature ? handleMouseDown : (e) => { e.preventDefault(); setIsPlacingSignature(true); }}
+            >
+              <div
+                className="px-6 py-2 rounded bg-white shadow-lg text-3xl font-signature border-2 border-red-300 flex items-center relative"
+                style={{ color: signatureColor, fontFamily: 'Dancing Script, cursive' }}
+              >
+                {uploadedSignature ? (
+                  <img src={uploadedSignature} alt="Signature" style={{ maxHeight: 64, maxWidth: 240, display: 'block' }} />
+                ) : (
+                  fullName
+                )}
+                {isPlacingSignature && (
+                  <button
+                    className="ml-2 text-gray-400 hover:text-gray-600 text-lg"
+                    onClick={e => { e.stopPropagation(); setIsPlacingSignature(false); setSignaturePos(null); }}
+                  >✕</button>
+                )}
+                {/* Resize handle */}
+                <div
+                  className="absolute bottom-0 right-0 w-4 h-4 bg-white border border-gray-400 rounded cursor-se-resize flex items-center justify-center"
+                  style={{ zIndex: 40 }}
+                  onMouseDown={handleResizeMouseDown}
+                >
+                  <svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 10h8M4 8h6M6 6h4" stroke="#888" strokeWidth="1.5"/></svg>
+                </div>
+              </div>
+            </div>
+          )}
+          {/* Overlay instructions */}
+          {isPlacingSignature && (
+            <div className="absolute inset-0 bg-black bg-opacity-20 flex flex-col items-center justify-center z-10 pointer-events-none">
+              <div className="mb-4 text-white text-xl font-semibold pointer-events-none">Drag your signature to the desired spot and release</div>
+            </div>
+          )}
         </div>
       </div>
       {/* Signing Options Panel */}
       <div className="w-full max-w-sm bg-white border-l shadow-lg flex flex-col p-8">
         <h2 className="text-2xl font-bold mb-6">Signing options</h2>
-        <div className="mb-6">
-          <div className="flex gap-4 mb-2">
-            {signatureTypes.map((type) => (
-              <button
-                key={type.value}
-                onClick={() => setSignatureType(type.value)}
-                className={`flex-1 flex flex-col items-center border-2 rounded-lg py-3 transition-all duration-150 ${signatureType === type.value ? 'border-red-500 bg-red-50 text-red-600' : 'border-gray-200 bg-gray-50 text-gray-400'}`}
-              >
-                <span className="text-lg font-semibold mb-1">{type.label}</span>
-                {/* Simple icons for now */}
-                {type.value === "simple" ? (
-                  <svg width="32" height="32" fill="none" viewBox="0 0 32 32"><path d="M4 28c4-8 8-8 12 0 4-8 8-8 12 0" stroke="#ef4444" strokeWidth="2" fill="none"/></svg>
-                ) : (
-                  <svg width="32" height="32" fill="none" viewBox="0 0 32 32"><circle cx="16" cy="16" r="14" stroke="#a3a3a3" strokeWidth="2" fill="none"/><path d="M10 18l4 4 8-8" stroke="#a3a3a3" strokeWidth="2" fill="none"/></svg>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-        <div className="mb-6">
-          <div className="text-gray-700 font-semibold mb-2">Required fields</div>
-          <div className="flex items-center border rounded-lg p-3 mb-2 bg-gray-50">
-            <span className="mr-2">✒️</span>
-            <span className="font-signature text-lg">Mrunal Gaikwad</span>
-            <button className="ml-auto text-gray-400 hover:text-gray-600"><svg width="20" height="20" fill="none" viewBox="0 0 20 20"><path d="M4 10h12M10 4v12" stroke="currentColor" strokeWidth="2"/></svg></button>
-          </div>
-        </div>
-        <div className="mb-6">
-          <div className="text-gray-700 font-semibold mb-2">Optional fields</div>
-          <div className="flex items-center border rounded-lg p-3 mb-2 bg-gray-50">
-            <span className="mr-2">AC</span>
-            <span className="font-signature text-lg">MG</span>
-          </div>
-          <div className="flex items-center border rounded-lg p-3 mb-2 bg-gray-50">
-            <span className="mr-2">🔤</span>
-            <span className="font-signature text-lg">Name</span>
-          </div>
-          <div className="flex items-center border rounded-lg p-3 mb-2 bg-gray-50">
-            <span className="mr-2">📅</span>
-            <span className="font-signature text-lg">Date</span>
-          </div>
-        </div>
-        <button className="mt-auto bg-red-300 hover:bg-red-400 text-white text-xl font-semibold py-4 rounded-xl flex items-center justify-center transition-all duration-200">
-          Sign <span className="ml-2">➔</span>
-        </button>
+        {/* Use SignaturePanel and pass handler to open modal and sign */}
+        <SignaturePanel
+          onOpenSignatureDetails={() => setShowSignatureDetailsModal(true)}
+          onSign={() => { setIsPlacingSignature(true); setSignaturePos(signaturePos || { x: 100, y: 100 }); }}
+          onUploadSignature={onUploadSignature}
+        />
       </div>
+      {/* Signature Details Modal */}
+      <SignatureDetailsModal
+        open={showSignatureDetailsModal}
+        onClose={() => setShowSignatureDetailsModal(false)}
+        fullName={fullName}
+        initials={initials}
+        setFullName={setFullName}
+        setInitials={setInitials}
+        signatureStyle={signatureStyle}
+        setSignatureStyle={setSignatureStyle}
+        signatureColor={signatureColor}
+        setSignatureColor={setSignatureColor}
+        onApply={() => setShowSignatureDetailsModal(false)}
+      />
     </div>
   );
 };
