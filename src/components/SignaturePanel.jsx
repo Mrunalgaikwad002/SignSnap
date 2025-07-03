@@ -172,7 +172,7 @@ const SignaturePanel = ({ onOpenSignatureDetails, onSign, onSavePdf, canSavePdf 
       </button>
       <button
         className="mt-4 bg-green-600 hover:bg-green-700 text-white text-base font-semibold py-2 rounded-xl flex items-center justify-center transition-all duration-200 disabled:opacity-50"
-        onClick={onSavePdf}
+        onClick={() => { console.log('Save PDF button clicked'); onSavePdf && onSavePdf(); }}
         disabled={!canSavePdf}
       >
         Save PDF

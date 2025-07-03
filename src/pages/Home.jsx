@@ -135,6 +135,7 @@ const Home = () => {
 
   // Save PDF with text signature
   const handleSavePdf = async () => {
+    console.log('Save PDF clicked', { selectedFile, signaturePos });
     if (!selectedFile || !signaturePos) return;
     // Load the PDF
     const arrayBuffer = await selectedFile.arrayBuffer();
