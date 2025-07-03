@@ -3,10 +3,10 @@ import 'react-pdf/dist/esm/Page/TextLayer.css';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 
 const signatureFonts = [
-  { label: "Style 1", font: "Dancing Script, cursive" },
-  { label: "Style 2", font: "Pacifico, cursive" },
-  { label: "Style 3", font: "Satisfy, cursive" },
-  { label: "Style 4", font: "Indie Flower, cursive" },
+  { label: "Great Vibes", font: "'Great Vibes', cursive" },
+  { label: "Dancing Script", font: "'Dancing Script', cursive" },
+  { label: "Sacramento", font: "'Sacramento', cursive" },
+  { label: "Alex Brush", font: "'Alex Brush', cursive" },
 ];
 
 const colors = ["#222", "#d32f2f", "#1976d2", "#388e3c"];
