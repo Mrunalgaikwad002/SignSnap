@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import 'react-pdf/dist/esm/Page/TextLayer.css';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
@@ -10,16 +10,10 @@ import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 // Use unpkg CDN for the workerSrc to avoid fetch errors in CRA
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 
-const signatureTypes = [
-  { label: "Simple Signature", value: "simple" },
-  { label: "Digital Signature", value: "digital" },
-];
-
 const Home = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [numPages, setNumPages] = useState(null);
   const [pageNumber, setPageNumber] = useState(1);
-  const [signatureType, setSignatureType] = useState("simple");
   // Signature details modal state
   const [showSignatureDetailsModal, setShowSignatureDetailsModal] = useState(false);
   const [fullName, setFullName] = useState('Mrunal Gaikwad');
@@ -61,13 +55,13 @@ const Home = () => {
   };
 
   // Helper to get mouse position relative to PDF container
-  const getRelativePos = (e) => {
+  const getRelativePos = useCallback((e) => {
     const rect = pdfContainerRef.current.getBoundingClientRect();
     return {
       x: e.clientX - rect.left,
       y: e.clientY - rect.top,
     };
-  };
+  }, []);
 
   // Mouse event handlers for drag
   const handleMouseDown = (e) => {
@@ -79,20 +73,20 @@ const Home = () => {
       y: pos.y - (signaturePos?.y || 100),
     });
   };
-  const handleMouseMove = (e) => {
+  const handleMouseMove = useCallback((e) => {
     if (!isDragging) return;
     const pos = getRelativePos(e);
     setSignaturePos({
       x: pos.x - dragOffset.x,
       y: pos.y - dragOffset.y,
     });
-  };
-  const handleMouseUp = () => {
+  }, [isDragging, dragOffset.x, dragOffset.y, getRelativePos]);
+  const handleMouseUp = useCallback(() => {
     if (isDragging) {
       setIsDragging(false);
       setIsPlacingSignature(false);
     }
-  };
+  }, [isDragging]);
 
   // Resize handlers
   const handleResizeMouseDown = (e) => {
@@ -103,16 +97,16 @@ const Home = () => {
       scale: signatureScale,
     };
   };
-  const handleResizeMouseMove = (e) => {
+  const handleResizeMouseMove = useCallback((e) => {
     if (!isResizing) return;
     const dx = e.clientX - resizeStart.current.x;
-    let newScale = resizeStart.current.scale + dx / 150; // adjust divisor for sensitivity
+    let newScale = resizeStart.current.scale + dx / 150;
     newScale = Math.max(0.5, Math.min(3, newScale));
     setSignatureScale(newScale);
-  };
-  const handleResizeMouseUp = () => {
+  }, [isResizing]);
+  const handleResizeMouseUp = useCallback(() => {
     if (isResizing) setIsResizing(false);
-  };
+  }, [isResizing]);
 
   React.useEffect(() => {
     if (isDragging) {
@@ -131,7 +125,7 @@ const Home = () => {
         window.removeEventListener('mouseup', handleResizeMouseUp);
       };
     }
-  }, [isDragging, isResizing]);
+  }, [isDragging, isResizing, handleMouseMove, handleMouseUp, handleResizeMouseMove, handleResizeMouseUp]);
 
   // Save PDF with text signature
   const handleSavePdf = async () => {
@@ -183,7 +177,7 @@ const Home = () => {
   if (!selectedFile) {
     return (
       <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-start pt-20">
-        <h1 className="text-5xl font-bold text-gray-800 text-center mb-4">Snapsign</h1>
+        <h1 className="text-5xl font-bold text-gray-800 text-center mb-4">SnapSign</h1>
         <p className="text-xl text-gray-500 text-center mb-8 max-w-2xl">
           E-sign your documents quickly and securely with SnapSign. Upload, sign, and download your PDF in seconds.
         </p>
