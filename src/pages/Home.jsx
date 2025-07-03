@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Document, Page, pdfjs } from "react-pdf";
 import 'react-pdf/dist/esm/Page/TextLayer.css';
 import 'react-pdf/dist/esm/Page/AnnotationLayer.css';
 import SignaturePanel from '../components/SignaturePanel';
 import SignatureDetailsModal from '../components/SignatureDetailsModal';
+import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 
 
 // Use unpkg CDN for the workerSrc to avoid fetch errors in CRA
@@ -33,7 +34,6 @@ const Home = () => {
   const [signatureScale, setSignatureScale] = useState(1);
   const [isResizing, setIsResizing] = useState(false);
   const resizeStart = React.useRef({ x: 0, scale: 1 });
-  const [uploadedSignature, setUploadedSignature] = useState(null); // data URL
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
@@ -133,13 +133,49 @@ const Home = () => {
     }
   }, [isDragging, isResizing]);
 
-  // Handle signature image upload
-  const onUploadSignature = (file) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setUploadedSignature(e.target.result);
+  // Save PDF with text signature
+  const handleSavePdf = async () => {
+    if (!selectedFile || !signaturePos) return;
+    // Load the PDF
+    const arrayBuffer = await selectedFile.arrayBuffer();
+    const pdfDoc = await PDFDocument.load(arrayBuffer);
+    const page = pdfDoc.getPage(pageNumber - 1);
+    // Embed a standard font
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    // Calculate position and size
+    const { width: pageWidth, height: pageHeight } = page.getSize();
+    const renderWidth = 700;
+    const scaleFactor = pageWidth / renderWidth;
+    const x = (signaturePos.x || 100) * scaleFactor;
+    const y = pageHeight - ((signaturePos.y || 100) + 48 * signatureScale) * scaleFactor;
+    // Convert hex color to rgb
+    const hexToRgb = hex => {
+      const m = hex.match(/^#([\da-f]{2})([\da-f]{2})([\da-f]{2})$/i);
+      if (!m) return [0,0,0];
+      return [parseInt(m[1],16)/255, parseInt(m[2],16)/255, parseInt(m[3],16)/255];
     };
-    reader.readAsDataURL(file);
+    const [r, g, b] = hexToRgb(signatureColor);
+    // Draw the signature as text
+    page.drawText(fullName, {
+      x,
+      y,
+      size: 36 * signatureScale,
+      font,
+      color: rgb(r, g, b),
+    });
+    // Save and download
+    const pdfBytes = await pdfDoc.save();
+    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'signed.pdf';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 100);
   };
 
   // UI before file selection
@@ -236,11 +272,7 @@ const Home = () => {
                 className="px-6 py-2 rounded bg-white shadow-lg text-3xl font-signature border-2 border-red-300 flex items-center relative"
                 style={{ color: signatureColor, fontFamily: 'Dancing Script, cursive' }}
               >
-                {uploadedSignature ? (
-                  <img src={uploadedSignature} alt="Signature" style={{ maxHeight: 64, maxWidth: 240, display: 'block' }} />
-                ) : (
-                  fullName
-                )}
+                {fullName}
                 {isPlacingSignature && (
                   <button
                     className="ml-2 text-gray-400 hover:text-gray-600 text-lg"
@@ -273,7 +305,8 @@ const Home = () => {
         <SignaturePanel
           onOpenSignatureDetails={() => setShowSignatureDetailsModal(true)}
           onSign={() => { setIsPlacingSignature(true); setSignaturePos(signaturePos || { x: 100, y: 100 }); }}
-          onUploadSignature={onUploadSignature}
+          onSavePdf={handleSavePdf}
+          canSavePdf={!!signaturePos && !isPlacingSignature}
         />
       </div>
       {/* Signature Details Modal */}

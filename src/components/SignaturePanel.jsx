@@ -9,7 +9,7 @@ const dragHandle = (
   <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><circle cx="4" cy="4" r="1.5" fill="#a3a3a3"/><circle cx="4" cy="8" r="1.5" fill="#a3a3a3"/><circle cx="4" cy="12" r="1.5" fill="#a3a3a3"/><circle cx="12" cy="4" r="1.5" fill="#a3a3a3"/><circle cx="12" cy="8" r="1.5" fill="#a3a3a3"/><circle cx="12" cy="12" r="1.5" fill="#a3a3a3"/></svg>
 );
 
-const SignaturePanel = ({ onOpenSignatureDetails, onSign, onUploadSignature }) => {
+const SignaturePanel = ({ onOpenSignatureDetails, onSign, onSavePdf, canSavePdf }) => {
   const [type, setType] = useState("simple");
   const [signature, setSignature] = useState("Mrunal Gaikwad");
   const [editingSignature, setEditingSignature] = useState(false);
@@ -165,26 +165,18 @@ const SignaturePanel = ({ onOpenSignatureDetails, onSign, onUploadSignature }) =
           </button>
         </div>
       </div>
-      <button className="mt-6 bg-red-500 hover:bg-red-600 text-white text-2xl font-semibold py-4 rounded-xl flex items-center justify-center transition-all duration-200"
+      <button className="mt-6 bg-red-500 hover:bg-red-600 text-white text-lg font-semibold py-3 rounded-xl flex items-center justify-center transition-all duration-200"
         onClick={onSign}
       >
         Sign <span className="ml-2">➔</span>
       </button>
-      <div className="mt-4 flex flex-col items-center">
-        <label className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded cursor-pointer">
-          Upload Signature Image
-          <input
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={e => {
-              if (e.target.files && e.target.files[0]) {
-                onUploadSignature && onUploadSignature(e.target.files[0]);
-              }
-            }}
-          />
-        </label>
-      </div>
+      <button
+        className="mt-4 bg-green-600 hover:bg-green-700 text-white text-base font-semibold py-2 rounded-xl flex items-center justify-center transition-all duration-200 disabled:opacity-50"
+        onClick={onSavePdf}
+        disabled={!canSavePdf}
+      >
+        Save PDF
+      </button>
     </div>
   );
 };
