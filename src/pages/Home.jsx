@@ -183,9 +183,9 @@ const Home = () => {
   if (!selectedFile) {
     return (
       <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-start pt-20">
-        <h1 className="text-5xl font-bold text-gray-800 text-center mb-4">Sign PDF</h1>
+        <h1 className="text-5xl font-bold text-gray-800 text-center mb-4">Snapsign</h1>
         <p className="text-xl text-gray-500 text-center mb-8 max-w-2xl">
-          Your tool to eSign documents. Sign a document yourself or send a signature request to others.
+          E-sign your documents quickly and securely with SnapSign. Upload, sign, and download your PDF in seconds.
         </p>
         <div className="flex flex-col items-center">
           <div
@@ -205,16 +205,6 @@ const Home = () => {
                 onChange={handleFileChange}
               />
             </label>
-            <div className="flex flex-col ml-4 space-y-3">
-              <button className="bg-red-500 hover:bg-red-600 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg">
-                {/* Google Drive SVG icon */}
-                <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path fill="#fff" d="M12.01 2l5.5 9.5-5.5 9.5-5.5-9.5L12.01 2zm0 2.236L7.236 11.5h9.548L12.01 4.236zm-4.774 8.264l4.774 8.264 4.774-8.264H7.236z"/></svg>
-              </button>
-              <button className="bg-red-500 hover:bg-red-600 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg">
-                {/* Dropbox SVG icon */}
-                <svg width="24" height="24" fill="none" viewBox="0 0 24 24"><path fill="#fff" d="M6.09 3.75L12 7.5l-5.91 3.75L0 7.5l6.09-3.75zm11.82 0L24 7.5l-6.09 3.75L12 7.5l5.91-3.75zM0 13.5l6.09-3.75L12 13.5l-5.91 3.75L0 13.5zm24 0l-6.09-3.75L12 13.5l5.91 3.75L24 13.5z"/></svg>
-              </button>
-            </div>
           </div>
           <p className="text-gray-500 mt-3">or drop PDF here</p>
         </div>
