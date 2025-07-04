@@ -61,6 +61,7 @@ SnapSign is a web application that allows users to upload PDF files, add digital
 
 | Feature | Screenshot |
 |---------|------------|
+| SnapSign Login | ![Login](https://github.com/Mrunalgaikwad002/SignSnap/blob/main/SnapSign%20login.png?raw=true) |
 | File Selection | ![File Selection](https://github.com/Mrunalgaikwad002/SignSnap/blob/main/SnapSign%20file%20selection.png?raw=true) |
 | Dashboard | ![Dashboard](https://github.com/Mrunalgaikwad002/SignSnap/blob/main/SnapSign%20dashboard.png?raw=true) |
 | Drag and Drop | ![Drag and Drop](https://github.com/Mrunalgaikwad002/SignSnap/blob/main/SnapSign%20drag%20and%20drop%20feature.png?raw=true) |
