@@ -1,70 +1,103 @@
-# Getting Started with Create React App
+# SnapSign
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+SnapSign is a web application that allows users to upload PDF files, add digital signatures, and download the signed documents. The app features a modern, user-friendly interface with drag-and-drop support, signature style selection, and local storage for signed PDFs.
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## Features
 
-### `npm start`
+- **User Authentication**: Register and log in to manage your signed documents securely.
+- **PDF Upload**: Easily upload PDF files for signing.
+- **Drag and Drop**: Intuitive drag-and-drop interface for file selection.
+- **Signature Panel**: Draw or type your signature with multiple style options.
+- **Signature Placement**: Place your signature anywhere on the PDF.
+- **Download Signed PDF**: Download the signed PDF directly to your device.
+- **Signature Details Modal**: View details about your signature before finalizing.
+- **Local Storage**: Signed PDFs are saved in your browser for quick access.
+- **Responsive Design**: Works seamlessly on desktop and mobile devices.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+---
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Component Design
 
-### `npm test`
+### 1. `FileUpload`
+- Handles file selection and drag-and-drop upload.
+- Validates file type and size.
+- Provides visual feedback for drag-and-drop actions.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### 2. `SignaturePanel`
+- Allows users to draw or type their signature.
+- Offers multiple signature styles.
+- Provides a clear button to reset the signature.
 
-### `npm run build`
+### 3. `SignButton`
+- Triggers the signing process.
+- Disabled until a valid signature and PDF are selected.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### 4. `DownloadButton`
+- Enables users to download the signed PDF.
+- Provides feedback on download status.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### 5. `SignatureDetailsModal`
+- Displays signature metadata (date, style, etc.).
+- Confirms signature before applying to the PDF.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+---
 
-### `npm run eject`
+## Pages
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### - `Home`
+- Main dashboard for uploading and signing PDFs.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### - `Login`
+- User authentication page.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### - `Register`
+- New user registration page.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+---
 
-## Learn More
+## Screenshots
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+| Feature | Screenshot |
+|---------|------------|
+| File Selection | ![File Selection](https://github.com/Mrunalgaikwad002/SignSnap/blob/main/SnapSign%20file%20selection.png?raw=true) |
+| Dashboard | ![Dashboard](https://github.com/Mrunalgaikwad002/SignSnap/blob/main/SnapSign%20dashboard.png?raw=true) |
+| Drag and Drop | ![Drag and Drop](https://github.com/Mrunalgaikwad002/SignSnap/blob/main/SnapSign%20drag%20and%20drop%20feature.png?raw=true) |
+| PDF Preview | ![PDF Preview](https://github.com/Mrunalgaikwad002/SignSnap/blob/main/SnapSign%20pdf%20.png?raw=true) |
+| PDF Download | ![PDF Download](https://github.com/Mrunalgaikwad002/SignSnap/blob/main/SnapSign%20pdf%20download.png?raw=true) |
+| Signature Styles | ![Signature Styles](https://github.com/Mrunalgaikwad002/SignSnap/blob/main/SnapSign%20signature%20styles.png?raw=true) |
+| Signed PDF in Local Storage | ![Signed PDF Local](https://github.com/Mrunalgaikwad002/SignSnap/blob/main/SnapSign%20signed%20pdf%20in%20local%20storage.png?raw=true) |
+| Signed PDF | ![Signed PDF](https://github.com/Mrunalgaikwad002/SignSnap/blob/main/SnapSign%20signed%20pdf.png?raw=true) |
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+---
 
-### Code Splitting
+## Getting Started
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+1. Clone the repository.
+2. Install dependencies:
+   ```bash
+   cd frontend
+   npm install
+   ```
+3. Start the development server:
+   ```bash
+   npm start
+   ```
+4. Open your browser at `http://localhost:3000`.
 
-### Analyzing the Bundle Size
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## Technologies Used
 
-### Making a Progressive Web App
+- React
+- Tailwind CSS
+- JavaScript
+- HTML5 & CSS3
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+---
 
-### Advanced Configuration
+## License
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+This project is licensed under the MIT License.
 
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
